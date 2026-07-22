@@ -2,25 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ludo Game</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Ludo Online</title>
+  <style>
+    body { font-family: Arial; text-align: center; }
+    .board { margin: 20px auto; width: 400px; height: 400px; border: 3px solid black; }
+    .token { width: 30px; height: 30px; border-radius: 50%; display: inline-block; margin: 5px; }
+    .red { background: red; }
+    .green { background: green; }
+    .yellow { background: yellow; }
+    .blue { background: blue; }
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Ludo Game</h1>
-  <p>This project is a Python-based Ludo game. I built it to learn programming and game logic.</p>
-  
-  <h2>How to Run</h2>
-  <ul>
-    <li>Clone the repo</li>
-    <li>Install Python</li>
-    <li>Run <code>python ludo.py</code></li>
-  </ul>
+  <h1>Play Ludo Online</h1>
+  <div class="board">
+    <div class="token red"></div>
+    <div class="token green"></div>
+    <div class="token yellow"></div>
+    <div class="token blue"></div>
+  </div>
+  <button onclick="rollDice()">Roll Dice</button>
+  <p id="result"></p>
 
-  <h2>Screenshots</h2>
-  <img src="screenshot.png" alt="Ludo Game Screenshot" width="400">
+  <script>
+    let turn = 0;
+    const players = ["Red", "Green", "Yellow", "Blue"];
 
-  <footer>
-    <p>Made with ❤️ by Harinmayi</p>
-  </footer>
+    function rollDice() {
+      const roll = Math.floor(Math.random() * 6) + 1;
+      document.getElementById("result").innerText =
+        players[turn] + " rolled a " + roll;
+      // TODO: Add movement logic here
+      turn = (turn + 1) % players.length;
+    }
+  </script>
 </body>
 </html>
