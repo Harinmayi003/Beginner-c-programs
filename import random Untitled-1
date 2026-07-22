@@ -1,0 +1,63 @@
+
+import time
+
+# ANSI color codes for console output
+COLORS = {
+    "Red": "\033[91m",
+    "Green": "\033[92m",
+    "Yellow": "\033[93m",
+    "Blue": "\033[94m",
+    "End": "\033[0m"
+}
+
+class Player:
+    def __init__(self, name, color):
+        self.name = name
+        self.color = color
+        self.position = 0   # 0 means not yet entered
+        self.finished = False
+
+    def roll_dice(self):
+        return random.randint(1, 6)
+
+    def move(self, steps):
+        if self.position == 0 and steps == 6:
+            self.position = 1  # enter the board
+        elif self.position > 0:
+            self.position += steps
+            if self.position >= 57:  # 57 is the finish line in classic Ludo
+                self.position = 57
+                self.finished = True
+
+    def __str__(self):
+        return f"{COLORS[self.color]}{self.name} ({self.color}) at {self.position}{COLORS['End']}"
+
+def play_turn(player):
+    print(f"\n{player} → rolling dice...")
+    time.sleep(1)
+    roll = player.roll_dice()
+    print(f"{player.name} rolled a {roll}")
+    player.move(roll)
+    print(f"{player} after move")
+
+def ludo_game():
+    players = [
+        Player("Player 1", "Red"),
+        Player("Player 2", "Green"),
+        Player("Player 3", "Yellow"),
+        Player("Player 4", "Blue")
+    ]
+
+    winner = None
+    while not winner:
+        for player in players:
+            if not player.finished:
+                play_turn(player)
+                if player.finished:
+                    winner = player
+                    break
+
+    print(f"\n🏆 {winner} has WON the game!")
+
+if __name__ == "__main__":
+    ludo_game()
