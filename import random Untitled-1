@@ -1,4 +1,4 @@
-
+import random
 import time
 
 # ANSI color codes for console output
