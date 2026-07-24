@@ -5,120 +5,114 @@
   <title>Ludo Online</title>
   <style>
     body { font-family: Arial; text-align: center; }
-    canvas { border: 3px solid black; margin-top: 20px; }
-    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(15, 30px);
+      grid-template-rows: repeat(15, 30px);
+      margin: 20px auto;
+      width: 450px;
+      height: 450px;
+      border: 3px solid black;
+    }
+    .cell {
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .home-red { background: #ffcccc; }
+    .home-green { background: #ccffcc; }
+    .home-yellow { background: #ffffcc; }
+    .home-blue { background: #ccccff; }
+    .token {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+    .red { background: red; }
+    .green { background: green; }
+    .yellow { background: yellow; }
+    .blue { background: blue; }
   </style>
 </head>
 <body>
   <h1>Play Ludo Online</h1>
-  <canvas id="board" width="600" height="600"></canvas>
+  <div class="board" id="board"></div>
   <button onclick="rollDice()">Roll Dice</button>
   <p id="result"></p>
 
   <script>
-    const canvas = document.getElementById("board");
-    const ctx = canvas.getContext("2d");
-
-    const cellSize = 40;
-    const boardSize = 15; // 15x15 grid
+    const board = document.getElementById("board");
+    const players = [
+      { name: "Red", color: "red", pos: -1 },
+      { name: "Green", color: "green", pos: -1 },
+      { name: "Yellow", color: "yellow", pos: -1 },
+      { name: "Blue", color: "blue", pos: -1 }
+    ];
     let turn = 0;
 
-    const safeSquares = [0, 8, 13, 21, 26, 34, 39, 47]; // Example safe positions
+    // Build 15x15 board
+    for (let r = 0; r < 15; r++) {
+      for (let c = 0; c < 15; c++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.id = `cell-${r}-${c}`;
 
-    const players = [
-      { color: "red", path: [], tokens: [-1, -1, -1, -1] },
-      { color: "green", path: [], tokens: [-1, -1, -1, -1] },
-      { color: "yellow", path: [], tokens: [-1, -1, -1, -1] },
-      { color: "blue", path: [], tokens: [-1, -1, -1, -1] }
+        // Color home areas
+        if (r < 6 && c < 6) cell.classList.add("home-red");
+        if (r < 6 && c > 8) cell.classList.add("home-green");
+        if (r > 8 && c < 6) cell.classList.add("home-yellow");
+        if (r > 8 && c > 8) cell.classList.add("home-blue");
+
+        board.appendChild(cell);
+      }
+    }
+
+    // Define simplified path (cross shape around the board)
+    const path = [
+      [7,0],[7,1],[7,2],[7,3],[7,4],[7,5],
+      [6,5],[5,5],[4,5],[3,5],[2,5],[1,5],[0,5],
+      [0,6],[0,7],[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],
+      [7,7],[7,8],[7,9],[7,10],[7,11],[7,12],[7,13],[7,14],
+      [8,14],[9,14],[10,14],[11,14],[12,14],[13,14],[14,14],
+      [14,13],[14,12],[14,11],[14,10],[14,9],[14,8],[14,7],
+      [13,7],[12,7],[11,7],[10,7],[9,7],[8,7],
+      [7,7] // center
     ];
 
-    function definePaths() {
-      // Simplified straight paths for demo
-      players.forEach((player, idx) => {
-        player.path = [...Array(57).keys()].map(i => ({
-          x: (i % boardSize),
-          y: Math.floor(i / boardSize)
-        }));
-      });
-    }
-
-    function drawBoard() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < boardSize; i++) {
-        for (let j = 0; j < boardSize; j++) {
-          ctx.strokeRect(i * cellSize, j * cellSize, cellSize, cellSize);
-        }
-      }
-      drawTokens();
-    }
-
     function drawTokens() {
-      players.forEach(player => {
-        player.tokens.forEach(pos => {
-          if (pos >= 0) {
-            const step = player.path[pos];
-            const x = step.x * cellSize + cellSize / 2;
-            const y = step.y * cellSize + cellSize / 2;
-            ctx.beginPath();
-            ctx.arc(x, y, 12, 0, Math.PI * 2);
-            ctx.fillStyle = player.color;
-            ctx.fill();
-            ctx.closePath();
-          }
-        });
+      document.querySelectorAll(".cell").forEach(c => c.innerHTML = "");
+      players.forEach(p => {
+        if (p.pos >= 0) {
+          const token = document.createElement("div");
+          token.className = "token " + p.color;
+          const [r,c] = path[p.pos];
+          document.getElementById(`cell-${r}-${c}`).appendChild(token);
+        }
       });
     }
 
     function rollDice() {
       const roll = Math.floor(Math.random() * 6) + 1;
+      const player = players[turn];
       document.getElementById("result").innerText =
-        players[turn].color.toUpperCase() + " rolled " + roll;
+        player.name + " rolled a " + roll;
 
-      // Pick first available token for demo
-      let moved = false;
-      for (let i = 0; i < 4; i++) {
-        if (players[turn].tokens[i] === -1 && roll === 6) {
-          players[turn].tokens[i] = 0; // Enter board
-          moved = true;
-          break;
-        } else if (players[turn].tokens[i] >= 0) {
-          players[turn].tokens[i] += roll;
-          if (players[turn].tokens[i] >= players[turn].path.length) {
-            players[turn].tokens[i] = players[turn].path.length - 1;
-            alert(players[turn].color.toUpperCase() + " finished a token!");
-          }
-          // Capture check
-          capture(players[turn], players[turn].tokens[i]);
-          moved = true;
-          break;
+      if (player.pos === -1 && roll === 6) {
+        player.pos = 0; // enter path
+      } else if (player.pos >= 0) {
+        player.pos += roll;
+        if (player.pos >= path.length - 1) {
+          player.pos = path.length - 1;
+          alert(player.name + " wins!");
         }
       }
 
-      if (!moved) {
-        document.getElementById("result").innerText += " (no move)";
-      }
-
+      drawTokens();
       turn = (turn + 1) % players.length;
-      drawBoard();
     }
 
-    function capture(currentPlayer, pos) {
-      players.forEach(player => {
-        if (player.color !== currentPlayer.color) {
-          player.tokens.forEach((t, idx) => {
-            if (t === pos && !safeSquares.includes(pos)) {
-              player.tokens[idx] = -1; // Send back to home
-              alert(currentPlayer.color.toUpperCase() + " captured " + player.color.toUpperCase() + "!");
-            }
-          });
-        }
-      });
-    }
-
-    definePaths();
-    drawBoard();
+    drawTokens();
   </script>
 </body>
 </html>
-
-   
